@@ -1,13 +1,12 @@
-
-
 # basic vpc
 
 resource "aws_vpc" "myvpc" {
 
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.vpc_cidr
 
   tags = {
-    Name = "jarvis-vpc"
+    Name    = "${local.name_prefix}-vpc"
+    Project = "${var.project_name}-${var.environment}-vpc"
   }
 }
 
@@ -15,11 +14,12 @@ resource "aws_vpc" "myvpc" {
 
 resource "aws_subnet" "mysub" {
   vpc_id                  = aws_vpc.myvpc.id
-  cidr_block              = "10.0.0.0/24"
+  cidr_block              = var.subnet_cidr
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "jarvis-sub"
+    Name    = "${local.name_prefix}-sub"
+    Project = "${var.project_name}-${var.environment}-subnet"
   }
 }
 
@@ -29,7 +29,8 @@ resource "aws_route_table" "myroute" {
   vpc_id = aws_vpc.myvpc.id
 
   tags = {
-    Name = "jarvis-route"
+    Name    = "${local.name_prefix}-route"
+    Project = "${var.project_name}-${var.environment}-route"
   }
 }
 
@@ -39,7 +40,8 @@ resource "aws_internet_gateway" "mygw" {
   vpc_id = aws_vpc.myvpc.id
 
   tags = {
-    Name = "jarvis-gateway"
+    Name    = "${local.name_prefix}-gateway"
+    Project = "${var.project_name}-${var.environment}-gateway"
   }
 }
 
@@ -65,36 +67,52 @@ resource "aws_route_table_association" "mya" {
 # security group
 
 resource "aws_security_group" "mysg" {
-  name        = "terra-sec-group"
+  name        = "${local.name_prefix}-sec-group"
   vpc_id      = aws_vpc.myvpc.id #interpolation
   description = "This is will have inbound and outbound rule"
 
-	ingress {
-	description 	  = "SSH"
-	cidr_blocks 	  = ["0.0.0.0/0"]
-	from_port 	  = 22
-	protocol 	  = "tcp"
-	to_port 	  = 22
-	}
-	
-	ingress {
-        description       = "HTTP"
-        cidr_blocks       = ["0.0.0.0/0" ]
-        from_port         = 80
-        protocol          = "tcp"
-        to_port           = 80
-	}
-	
-	egress {
-	from_port	  = 0
-	to_port	 	  = 0
-  	cidr_blocks       = ["0.0.0.0/0"]
-  	protocol       = "-1" # semantically equivalent to all ports all traffic
-	}
+  # using dynamic block
 
-	tags = {
-	Name = "jarvis-sg"
-	}
+  dynamic "ingress" {
+    for_each = var.allowed_ports
+    content {
+      description = "Port ${ingress.value}"
+      from_port   = ingress.value
+      to_port     = ingress.value
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+  }
+
+
+  #	ingress {
+  #	description 	  = "SSH"
+  #	cidr_blocks 	  = ["0.0.0.0/0"]
+  #	from_port 	  = 22
+  #	protocol 	  = "tcp"
+  #	to_port 	  = 22
+  #	}
+  #	
+  #	ingress {
+  #        description       = "HTTP"
+  #        cidr_blocks       = ["0.0.0.0/0" ]
+  #        from_port         = 80
+  #        protocol          = "tcp"
+  #        to_port           = 80
+  #	}
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+    protocol    = "-1" # semantically equivalent to all ports all traffic
+  }
+
+  tags = {
+    Name    = "${local.name_prefix}-sg"
+    Project = "${var.project_name}-${var.environment}-sg"
+  }
 }
 
 # for image id
@@ -113,27 +131,26 @@ data "aws_ami" "amazon_linux" {
 # ec2
 
 resource "aws_instance" "myec2" {
-	ami 		= data.aws_ami.amazon_linux.id
-	instance_type   = "t3.micro"
-	subnet_id	= aws_subnet.mysub.id
-	vpc_security_group_ids       = [aws_security_group.mysg.id]
-	associate_public_ip_address = true
-	
-	tags = {
-	Name = "jarvis-ec2"
-	}
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = var.instance_type
+  subnet_id                   = aws_subnet.mysub.id
+  vpc_security_group_ids      = [aws_security_group.mysg.id]
+  associate_public_ip_address = true
+  tags = {
+    Name = "${local.name_prefix}-ec2"
+  }
 }
 
 # s3 bucket 
 
 resource "aws_s3_bucket" "kbucks" {
-	bucket = "jarvis-bucks-app-log"
+  bucket = "jarvis-bucks-app-log"
 
-	# explicit dependency
-	depends_on = [aws_instance.myec2]
-	tags = {
-	Name = "jarvis-buck"
-	}
+  # explicit dependency
+  depends_on = [aws_instance.myec2]
+  tags = {
+    Name = "${local.name_prefix}-bucket"
+  }
 }
 
 # acl is deprecated replaced by IAM hence commentedout
