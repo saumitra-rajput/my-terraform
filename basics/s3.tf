@@ -8,8 +8,13 @@
 
 # in args jarvis_buck not vaild only hypen and numchars allowed.
 
-resource "aws_s3_bucket" "jbucks" {
+resource "aws_s3_bucket" "imported" {
 
-  bucket = "jarvis-bucks-updated"
+	bucket = "testing-import-jarvis"
+	
+	tags = {
+	Name = "rockstardevops"
+	}
+
 
 }
