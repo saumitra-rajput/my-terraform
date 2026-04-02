@@ -1,9 +1,10 @@
-# Terraform directories
+# Terraform provider binaries directories
 .terraform/
 
 # Terraform state files
 *.tfstate
 *.tfstate.*
+terraform.tfstate.d/
 
 # Crash logs
 crash.log
@@ -15,3 +16,9 @@ crash.log
 # CLI config files
 .terraformrc
 terraform.rc
+
+# Private keys
+*.pem
+
+# OS files
+.DS_store
