@@ -2,7 +2,7 @@
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.0"
+  version = "~> 19.0"
 
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
@@ -29,3 +29,12 @@ module "eks" {
     ManagedBy   = "Terraform"
   }
 }
+
+
+
+# Required for Kubernetes provider authentication
+data "aws_eks_cluster_auth" "this" {
+  name = module.eks.cluster_name
+}
+
+
