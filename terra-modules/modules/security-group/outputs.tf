@@ -2,5 +2,5 @@
 
 output "sg_id" {
     description = "Security Group ID"
-    value       = aws_security_group.mysg.ID
+    value       = aws_security_group.mysg.id
 }

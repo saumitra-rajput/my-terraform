@@ -10,7 +10,7 @@ resource "aws_security_group" "mysg" {
     dynamic "ingress" {
         for_each = var.ingress_ports
         content {
-            descripiton = "Allowed port ${ingress.value}"
+            description = "Allowed port ${ingress.value}"
             from_port   = ingress.value
             to_port     = ingress.value
             protocol    = "tcp"
@@ -21,7 +21,7 @@ resource "aws_security_group" "mysg" {
     # egress rule/outbound rules
 
     egress {
-        descripton = "Allow all outbound traffic"
+        description = "Allow all outbound traffic"
         from_port   = 0
         to_port     = 0
         protocol    = "-1"
