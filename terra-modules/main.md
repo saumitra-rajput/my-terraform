@@ -12,30 +12,31 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
-# removed manual vpc/subnet block
-# using latest aws vpc module
+# Create VPC
 
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  
-  name = "my-terra-week-vpc"	
-  cidr = "10.0.0.0/16"
-
-  azs             = ["us-west-2a", "us-west-2b"]
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
-
-  enable_nat_gateway = false
-  enable_dns_hostnames = true
-
-  tags = local.common_tags
+resource "aws_vpc" "myvpc" {
+    cidr_block = var.vpc_cidr
+    tags = {
+        Name = "myvpc"
+    }
 }
+
+# Create subnet
+
+resource "aws_subnet" "mysub" {
+    vpc_id = aws_vpc.myvpc.id
+    cidr_block = var.subnet_cidr
+  tags = {
+    Name = "mysubnet-root"
+  }
+}
+
 
 # call the security group module
 
 module "web_sg" {
   source        = "./modules/security-group"
-  vpc_id        = module.vpc.vpc_id
+  vpc_id        = aws_vpc.myvpc.id
   sg_name       = "terraweek-web-sg"
   ingress_ports = var.allowed_ports
   tags          = local.common_tags
@@ -47,7 +48,7 @@ module "web_server" {
     source          = "./modules/ec2-instance"
     ami_id          = data.aws_ami.amazon_linux.id
     instance_type   = var.instance_type
-    subnet_id       = module.vpc.public_subnets[0]
+    subnet_id       = aws_subnet.mysub.id
     security_group_ids = [module.web_sg.sg_id]
     instance_name   = "terraweek-devops-web"
     tags            = local.common_tags
@@ -59,7 +60,7 @@ module "api_server" {
     source          = "./modules/ec2-instance"
     ami_id          = data.aws_ami.amazon_linux.id
     instance_type   = var.instance_type
-    subnet_id       = module.vpc.public_subnets[0]
+    subnet_id       = aws_subnet.mysub.id
     security_group_ids = [module.web_sg.sg_id]
     instance_name   = "terraweek-devops-api"
     tags            = local.common_tags

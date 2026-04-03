@@ -7,10 +7,10 @@ output "instance_id" {
 
 output "public_ip" {
     description = "Output value EC2 publicIP"
-    value       = aws_instance.myec2.publicIP
+    value       = aws_instance.myec2.public_ip
 }
 
 output "private_ip" {
     description = "Output value EC2 privateIP"
-    value       = aws_instance.myec2.privateIP
+    value       = aws_instance.myec2.private_ip
 }
