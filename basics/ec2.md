@@ -1,9 +1,9 @@
 # this file will create the ec2
-
-provider "aws" {
-
-  region = "us-west-2"
-}
+#
+#provider "aws" {
+#
+# region = "us-west-2"
+#}
 
 # key value pair
 
@@ -39,6 +39,16 @@ resource "aws_vpc_security_group_ingress_rule" "allow_http" {
   to_port           = 80
 
 }
+
+resource "aws_vpc_security_group_ingress_rule" "allow_http" {
+  security_group_id = aws_security_group.my_security_group.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
+
+}
+
 
 resource "aws_vpc_security_group_ingress_rule" "allow_ssh" {
   security_group_id = aws_security_group.my_security_group.id
