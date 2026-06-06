@@ -9,6 +9,7 @@ terraform.tfstate.d/
 # Terrafrom lock files
 *.terraform.lock.hcl
 
+*terraform.lock.hcl
 # Crash logs
 crash.log
 
